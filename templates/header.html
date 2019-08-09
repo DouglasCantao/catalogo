@@ -1,0 +1,46 @@
+    <div class="row">
+        <header class="twelve columns header">
+        <div class="catalogo">
+        <a style="text-decoration: none; color: black;" href="{{url_for('show_categorias')}}"><h1>Catalogo</h1></a>
+        </div>
+        <div>
+			{%if 'name' not in session %}
+            <div class="btn-login">
+				<a class="button button-primary" href="{{url_for('login')}}">login</a>
+            </div>
+			{% else %}
+            <div class="menu-login">
+				<ul class="profile-wrapper">
+                    <li>
+                        <!-- user profile -->
+                        <div class="profile">
+                            <h3>{{session.name}}</h3>
+                            <!-- more menu -->
+                            <ul class="menu">
+                                <li><a href="{{url_for('mostrar_categoria')}}">Criar Categoria</a></li>
+                                <li><a href="{{url_for('adicionar_item')}}">Adicionar Item</a></li>
+                                <li><a href="{{url_for('logout')}} " onclick="signOut()">Log out</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+			{% endif %}
+	    </div>
+        </header>
+    </div>
+    <script>
+        function signOut() {
+            var auth2 = gapi.auth2.getAuthInstance();
+            auth2.signOut().then(function () {
+            console.log('User signed out.');
+            });
+        }
+
+        function onLoad() {
+            gapi.load('auth2', function() {
+            gapi.auth2.init();
+        });
+    }
+    </script>
+    <script src="https://apis.google.com/js/platform.js?onload=onLoad" async defer></script>

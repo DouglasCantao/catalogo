@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "header.html" %}
+
+<div class='container' style="margin: 30px">
+  <div>
+    <form method="post" action="{{ url_for('adicionar_item') }}">
+      <div class="row">
+        <div class="three columns">
+          <label for="inputItem">Nome do item</label>
+          <input class="u-full-width" type="text" placeholder="Esportes" name="inputItem" id="inputItem" required>
+        </div>
+        <div class="five columns">
+          <label for="inputDescricao">Descrição</label>
+          <input class="u-full-width" type="text" placeholder="Esportes" name="inputDescricao" id="inputDescricao">
+        </div>
+        <div class="three columns">
+          <label for="inputCategoria">Categoria</label>
+          <select class="u-full-width" id="inputCategoria" name="inputCategoria" required>
+          {% for cat in categorias %}
+              <option value="{{ cat.id }}">{{ cat.nome }}</option>
+          {% endfor %}
+          </select>
+        </div>
+      </div>
+      <input class="button-primary" type="submit" value="Adicionar">
+    </form>
+  </div>
+    <div>
+        <h4>Itens criados</h4>
+        <table class="u-full-width">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Descrição</th>
+            <th>Categoria</th>
+            <th>Açoes</th>
+          </tr>
+        </thead>
+        {% for item, categoria in items %}
+        <tbody>
+          <tr id="item-{{ item.id }}">
+            <td>{{ item.nome }}</td>
+            <td>{{ item.descricao }}</td>
+            <td>{{ categoria.nome }}</td>
+            <td style="display: none">{{ categoria.id }}</td>
+            <td>
+              <a href="#" onclick="delete_confirm({{ item.id }})"><img src="/static/img/trash.png"></a>
+              <a href="#" onclick="show_editar_item_modal({{ item.id }})"><img src="/static/img/layout.png"></a>
+            </td>
+          </tr>
+        </tbody>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+
+<script>
+  function delete_confirm(id) {
+    if(window.confirm("Você deseja remover o item?")){
+      $.ajax({
+              type: 'DELETE',
+              url: '/removeitem/' + id,
+              //contentType: 'charset=utf-8',
+              //data: id,
+              success: function(result){
+                  if(result){
+                      alert("Item removido com sucesso!");
+                      window.location.reload(true);
+                  }
+              }
+        })
+    }
+  }
+
+  function show_editar_item_modal(id) {
+
+    let itemChildren = $("#item-" + id).children();
+    console.log(itemChildren[0]);
+
+    /* Atribui os valores do item aos campos de edição. */
+    $("#editItemName").val(itemChildren[0].textContent);
+    $("#editItemDescricao").val(itemChildren[1].textContent);
+    $("#editItemCategoria").val(itemChildren[3].textContent);
+    $("#editItemId").val(id);
+
+    /* Exibe a modal. */
+    $("#modal-edit-item").show();
+  }
+
+  function editar_item(id) {
+    data = {
+        nome_item: $("#editItemName").val(),
+        descricao: $("#editItemDescricao").val(),
+        categoria_id: $("#editItemCategoria").val()
+    }
+
+    $.ajax({
+        type: 'POST',
+        url: '/editaritem/' + $("#editItemId").val(),
+        data: JSON.stringify(data),
+        success: function(data) { alert('data: ' + data); },
+        contentType: "application/json",
+        dataType: 'json'
+    });
+  }
+
+  function hide_modal() {
+      $(".modal").hide();
+  }
+</script>
+{% endblock %}
+
+{% block modal %}
+    <div id="modal-edit-item" class="modal" style="display: none">
+        <div class="modal-content">
+          <p>Editar item</p>
+
+            <form id="editItemForm" method="POST">
+              <div class="three columns">
+                <label for="editItemName">Nome do item</label>
+                <input class="u-full-width" type="text" name="editItemName" id="editItemName" required>
+              </div>
+              <div class="five columns">
+                <label for="editItemDescricao">Descrição</label>
+                <input class="u-full-width" type="text" name="editItemDescricao" id="editItemDescricao">
+              </div>
+              <div class="three columns">
+                <label for="editItemCategoria">Selecione a categoria</label>
+                <select class="u-full-width" id="editItemCategoria" name="editItemCategoria" required>
+                    {% for cat in categorias %}
+                        <option value="{{ cat.id }}">{{ cat.nome }}</option>
+                    {% endfor %}
+                </select>
+              </div>
+              <input type="hidden" id="editItemId">
+
+              <div class="twelve columns">
+                <button onclick="hide_modal()">Cancelar</button>
+                <button onclick="editar_item()">Salvar</button>
+              </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

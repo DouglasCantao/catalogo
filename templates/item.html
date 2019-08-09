@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="two columns menu-lateral">
+        {% for item in items %}
+            <ul>
+                <li>{{ item.nome }}</li>
+            </ul>
+        {% endfor %}
+        </div>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "header.html" %}
+  <div class="bloco-registrar">
+        <form method="POST" action="{{ url_for('registrar') }}">
+        <div class="row">
+            <div class="full columns">
+            <label for="exampleEmailInput">Usuario</label>
+            <input class="u-full-width" type="text" placeholder="Usuario" name="inputUserName" id="inputUserName" required>
+            </div>
+        </div>
+        <div class="row">
+            <div class="full columns">
+            <label for="exampleEmailInput">Nome</label>
+            <input class="u-full-width" type="text" placeholder="Nome" name="inputName" id="inputName">
+            </div>
+        </div>
+        <div class="row">
+            <div class="full columns">
+            <label for="exampleEmailInput">Sobrenome</label>
+            <input class="u-full-width" type="text" placeholder="Sobrenome" name="inputLastName" id="inputLastName">
+            </div>
+        </div>
+        <div class="row">
+            <div class="full columns">
+            <label for="exampleEmailInput">Email</label>
+            <input class="u-full-width" type="email" placeholder="Email" name="inputEmail" id="inputEmail">
+            </div>
+        </div>
+        <div class="row">
+            <div class="full columns">
+            <label for="exampleEmailInput">Senha</label>
+            <input class="u-full-width" type="password" placeholder="********" name="inputPwd" id="inputPwd" required>
+            </div>
+        </div>
+        <div class="row">
+            <div class="full columns">
+            <label for="exampleEmailInput">Repetir Senha</label>
+            <input class="u-full-width" type="password" placeholder="********" name="inputPwd2" id="inputPwd2" required>
+            </div>
+        </div>
+        <div class="row">
+            <div class="two columns">
+            <input class="button-primary btn-cadastrar" type="submit" value="Cadastrar">
+            </div>
+            {% with msgs = get_flashed_messages() %}
+                {% if msgs %}
+                    {% for msg in msgs %}
+                        <span id="msn-erro">{{ msg }}</span>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+        </form>
+    </div>
+    <script>
+
+        /*$(`.btn-cadastrar`).click(function(event){
+            event.preventDefault();
+
+            let form = $(`form`);
+            console.log(11, form);
+
+            let senha1 = $(`#inputPwd`).val();
+            let senha2 = $(`#inputPwd2`).value;
+
+            console.log(11, senha1);
+
+        });*/
+
+    </script>
+
+{% endblock %}

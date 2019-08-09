@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="google-signin-scope" content="profile email">
+        <meta name="google-signin-client_id" content="44658535051-akmqjtvtau6uvp6oovnj44r3vcuj85k4.apps.googleusercontent.com">
+        
+        <script src="https://apis.google.com/js/platform.js" async defer></script>
+        <title>Catalogo</title>
+        <!--<link rel="stylesheet" href="{{url_for('static', filename='nomalize.css')}}">-->
+        <link rel="stylesheet" href="{{url_for('static', filename='skeleton.css')}}">
+        <link rel="stylesheet" href="{{url_for('static', filename='base.css')}}">
+        <link rel="stylesheet" href="{{url_for('static', filename='aside.css')}}">
+        <link rel="stylesheet" href="{{url_for('static', filename='criar_catalogo.css')}}">
+        <link rel="stylesheet" href="{{url_for('static', filename='show_items.css')}}">
+        <link rel="stylesheet" href="{{url_for('static', filename='adicionar_item.css')}}">
+        <link rel="stylesheet" href="{{url_for('static', filename='card.css')}}">
+        <script src="{{url_for('static', filename='js/jquery-3.4.1.min.js')}}"></script>
+        
+    </head>
+    <body>
+    {% block content %}
+    {% endblock %}
+     
+    {% block modal %}
+    {% endblock %}
+    </body>
+</html>

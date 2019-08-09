@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "header.html" %}
+{% include "aside.html" %}
+
+<div class="container-items">
+    <div class="row">
+        <div class="six columns items">
+        <h4>Itens disponíveis de {{categoria.nome}}</h4>
+            {% for item in items %}
+                <ul>
+                    <li><h6><a href="{{url_for('show_item_descricao', id_item=item.id)}}">{{ item.nome }}</a></h6></li>
+                </ul>
+            {% endfor %}
+            <div class="nine columns card">
+                    {% if item %}
+                    <span class="card-titulo"></span>
+                    <p class="card-desc">{{ item.descricao }}</p>
+                    {% endif %}
+                </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

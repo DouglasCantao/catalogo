@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "header.html" %}
+
+<div class='container' style="margin: 30px">
+<div>
+  <form method="post" action="{{ url_for('criar_categoria') }}">
+    <div class="row">
+      <div class="three columns">
+        <label for="inputCategoria">Categoria</label>
+        <input class="u-full-width" type="text" placeholder="Esportes" name="inputCategoria" id="inputCategoria" required>
+      </div>
+      <div class="five columns">
+        <label for="inputCategoria">Descrição</label>
+        <input class="u-full-width" type="text" placeholder="Esportes" name="inputDescricao" id="inputDescricao">
+      </div>
+    </div>
+    <input class="button-primary" type="submit" value="Criar">
+  </form>
+  </div>
+  <div>
+    <h4>Categorias criadas</h4>
+    <table class="u-full-width">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Descrição</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    {% for cat in categorias %}
+    <tbody>
+      <tr id="categoria-{{cat.id}}">
+        <td>{{ cat.nome }}</td>
+        <td>{{ cat.descricao }}</td>
+        <td>
+          <a href="#" onclick="delete_confirm({{cat.id}})"><img src="/static/img/trash.png"></a>
+          <a href="#" onclick="show_editar_cat_modal({{ cat.id }})"><img src="/static/img/layout.png"></a>
+        </td>
+      </tr>
+    </tbody>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+
+<script>
+    function delete_confirm(id) {
+        if(window.confirm("Você deseja remover o item?")){
+            $.ajax({
+            type: 'DELETE',
+            url: '/removecategoria/' + id,
+            //contentType: 'charset=utf-8',
+            //data: id,
+            success: function(result){
+                if(result){
+                $("#categoria-" + id).remove();    
+                alert("Categoria removida com sucesso!");
+                }
+            }
+            })
+        }
+    }
+
+    function show_editar_cat_modal(id) {
+
+        let catChildren = $("#categoria-" + id).children();
+        console.log(catChildren[0]);
+
+        /* Atribui os valores do item aos campos de edição. */
+        $("#editCatName").val(catChildren[0].textContent);
+        $("#editCatDescricao").val(catChildren[1].textContent);
+        $("#editCatId").val(id);
+
+        /* Exibe a modal. */
+        $("#modal-edit-cat").show();
+    }
+
+    function editar_cat() {
+        data = {
+            cat_nome: $("#editCatName").val(),
+            cat_descricao: $("#editCatDescricao").val()
+        }
+
+        $.ajax({
+            type: 'POST',
+            url: '/editarcategoria/' + $("#editCatId").val(),
+            data: JSON.stringify(data),
+            success: function(data) { 
+                $("#categoria-" + id).fadeOut(0.5);
+            },
+            contentType: "application/json",
+            dataType: 'json'
+        });
+    }
+
+    function hide_modal() {
+        $(".modal").hide();
+    }
+</script>
+
+{% endblock %}
+
+{% block modal %}
+    <div id="modal-edit-cat" class="modal" style="display: none">
+        <div class="modal-content">
+          <p>Editar Categoria</p>
+
+            <form id="editCatForm">
+              <div class="four columns">
+                <label for="editCatName">Nome</label>
+                <input class="u-full-width" type="text" id="editCatName" required>
+              </div>
+              <div class="five columns">
+                <label for="editCatDescricao">Descrição</label>
+                <input class="u-full-width" type="text" id="editCatDescricao">
+              </div>
+              <input type="hidden" id="editCatId">
+
+              <div class="twelve columns">
+                <button onclick="hide_modal()">Cancelar</button>
+                <button onclick="editar_cat()">Salvar</button>
+              </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

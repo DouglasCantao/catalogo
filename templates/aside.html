@@ -1,0 +1,7 @@
+    <div class="two columns menu-lateral">
+            {% for cat in categorias %}
+            <ul class='menu-categorias'>
+                <li><a href = "{{url_for('show_items', id_categoria=cat.id)}}">{{ cat.nome }}</a></li>
+            </ul>
+            {% endfor %}
+    </div>
