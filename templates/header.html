@@ -6,7 +6,7 @@
         <div>
 			{%if 'name' not in session %}
             <div class="btn-login">
-				<a class="button button-primary" href="{{url_for('login')}}">login</a>
+				<a class="button button-primary" href="{{url_for('show_login')}}">login</a>
             </div>
 			{% else %}
             <div class="menu-login">
@@ -18,7 +18,7 @@
                             <!-- more menu -->
                             <ul class="menu">
                                 <li><a href="{{url_for('mostrar_categoria')}}">Criar Categoria</a></li>
-                                <li><a href="{{url_for('adicionar_item')}}">Adicionar Item</a></li>
+                                <li><a href="{{url_for('items')}}">Adicionar Item</a></li>
                                 <li><a href="{{url_for('logout')}} " onclick="signOut()">Log out</a></li>
                             </ul>
                         </div>
