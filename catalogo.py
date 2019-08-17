@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request
 from flask import session, redirect, jsonify, url_for, flash, g
 import hashlib
+import random
+import string
 import os
 
 from sqlalchemy import create_engine, asc
@@ -51,10 +53,13 @@ def gcon(token):
             raise ValueError('Wrong issuer.')
 
         # ID token valido. Recuperar informacoes disponiveis.
+        print idinfo
         userid = idinfo['sub']
         session['email'] = idinfo['email']
         session['name'] = idinfo['name']
+        session['user'] = None
         session['token'] = token
+        session['logged_in'] = True
 
         usuario = s.query(Usuario).filter_by(email=idinfo['email']).one()
 
@@ -79,7 +84,7 @@ def gcon(token):
     except ValueError:
         # Invalid token
         pass
-    return redirect(url_for('login'))
+    return redirect(url_for('show_login'))
 
 
 def login_required(f):
@@ -91,6 +96,34 @@ def login_required(f):
             redirect(url_for('login'))
 
 
+@app.route('/gdisconnect')
+def gdisconnect():
+        # Only disconnect a connected user.
+    access_token = session.get('token')
+    if access_token is None:
+        response = make_response(
+            json.dumps('Current user not connected.'), 401)
+        response.headers['Content-Type'] = 'application/json'
+        return response
+    url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % access_token
+    h = httplib2.Http()
+    result = h.request(url, 'GET')[0]
+
+    if result['status'] == '200':
+        # Reset the user's sesson.
+        session.clear()
+
+        response = make_response(json.dumps('Successfully disconnected.'), 200)
+        response.headers['Content-Type'] = 'application/json'
+        return response
+    else:
+        # For whatever reason, the given token was invalid.
+        response = make_response(
+            json.dumps('Failed to revoke token for given user.', 400))
+        response.headers['Content-Type'] = 'application/json'
+        return response
+
+
 @login_required
 @app.route('/logout/')
 def logout():
@@ -98,25 +131,29 @@ def logout():
     return redirect(url_for('show_categorias'))
 
 
-@app.route('/login/', methods=['GET', 'POST'])
-def login():
+@app.route('/login/')
+def show_login():
+    return render_template('login.html')
+
+
+@app.route('/login_usuario/', methods=['POST'])
+def login_usuario():
     s = DBSession()
 
-    if request.method == 'POST':
-        session.pop('user', None)
-        nickname = request.form.get("nickname", False)
-        pwd = request.form.get("inputPwd", False)
+    session.pop('user', None)
+    nickname = request.form.get("nickname", False)
+    pwd = request.form.get("inputPwd", False)
 
-        if check_hashed_pwd(nickname, pwd):
-            usuario = s.query(Usuario).filter_by(nickname=nickname).one()
-            session['user'] = usuario.nickname
-            session['name'] = usuario.name
-            session['id'] = usuario.id
-            session['logged_in'] = True
+    if check_hashed_pwd(nickname, pwd):
+        usuario = s.query(Usuario).filter_by(nickname=nickname).one()
+        session['user'] = usuario.nickname
+        session['name'] = usuario.name
+        session['id'] = usuario.id
+        session['logged_in'] = True
 
-            return redirect(url_for('show_categorias'))
+        return redirect(url_for('show_categorias'))
 
-    return render_template('login.html', STATE=state)
+    return render_template('login.html')
 
 
 # Encriptar a senha do usuario
@@ -192,15 +229,19 @@ def registrar():
     return render_template('registrar.html')
 
 
-@login_required
+# @login_required
 @app.route('/categorias/', methods=['GET'])
 def mostrar_categoria():
     s = DBSession()
-    if 'user' in session:
+    if 'email' in session:
+        email = session['email']
         nickname = session['user']
-        user = s.query(Usuario).filter_by(nickname=nickname).one()
+        if email is not None:
+            user = s.query(Usuario).filter_by(email=email).one()
+        elif nickname is not None:
+            user = s.query(Usuario).filter_by(nickname=nickname).one()
     else:
-        return redirect(url_for('login'))
+        return redirect(url_for('show_login'))
 
     if s.query(Categoria).filter_by(usuario_id=user.id).first() is not None:
         categorias = s.query(Categoria).filter_by(usuario_id=user.id).all()
@@ -210,15 +251,19 @@ def mostrar_categoria():
     return render_template('criar_catalogo.html', categorias=categorias)
 
 
-@login_required
+# @login_required
 @app.route('/criarcategoria/', methods=['POST'])
 def criar_categoria():
     s = DBSession()
-    if 'user' in session:
+    if 'email' in session:
+        email = session['email']
         nickname = session['user']
-        user = s.query(Usuario).filter_by(nickname=nickname).one()
+        if email is not None:
+            user = s.query(Usuario).filter_by(email=email).one()
+        elif nickname is not None:
+            user = s.query(Usuario).filter_by(nickname=nickname).one()
     else:
-        return redirect(url_for('login'))
+        return redirect(url_for('show_login'))
 
     if request.method == 'POST':
         nome = request.form.get("inputCategoria", False)
@@ -236,15 +281,18 @@ def criar_categoria():
     return redirect(url_for('mostrar_categoria'))
 
 
-@login_required
-@app.route('/adicionaritem/', methods=['GET', 'POST', 'DELETE'])
-def adicionar_item():
+@app.route('/items/', methods=['GET'])
+def items():
     s = DBSession()
-    if 'user' in session:
+    if 'email' in session:
+        email = session['email']
         nickname = session['user']
-        user = s.query(Usuario).filter_by(nickname=nickname).one()
+        if email is not None:
+            user = s.query(Usuario).filter_by(email=email).one()
+        elif nickname is not None:
+            user = s.query(Usuario).filter_by(nickname=nickname).one()
     else:
-        return redirect(url_for('login'))
+        return redirect(url_for('show_login'))
 
     if s.query(Categoria).all() is not None:
         categorias = s.query(Categoria).all()
@@ -256,6 +304,24 @@ def adicionar_item():
             Item.usuario_id == user.id).all()
     else:
         items = []
+
+    return render_template('adicionar_item.html', items=items,
+                           categorias=categorias)
+
+
+@login_required
+@app.route('/adicionaritem/', methods=['POST'])
+def adicionar_item():
+    s = DBSession()
+    if 'email' in session:
+        email = session['email']
+        nickname = session['user']
+        if email is not None:
+            user = s.query(Usuario).filter_by(email=email).one()
+        elif nickname is not None:
+            user = s.query(Usuario).filter_by(nickname=nickname).one()
+    else:
+        return redirect(url_for('show_login'))
 
     if request.method == 'POST':
         nome_item = request.form.get("inputItem", False)
@@ -270,10 +336,7 @@ def adicionar_item():
             s.add(novo_item)
             s.commit()
 
-            return redirect(url_for('adicionar_item'))
-
-    return render_template('adicionar_item.html', categorias=categorias,
-                           items=items)
+    return redirect(url_for('items'))
 
 
 @app.route('/removeitem/<int:id_item>', methods=['DELETE'])
@@ -330,8 +393,28 @@ def editar_categoria(id_categoria):
     categoria.descricao = descricao
     s.add(categoria)
     s.commit()
-
     return redirect(url_for('mostrar_categoria'))
+
+
+@app.route('/usuarios/JSON')
+def usuariosJSON():
+    s = DBSession()
+    usuarios = s.query(Usuario).all()
+    return jsonify(categorias=[u.serialize for u in usuarios])
+
+
+@app.route('/items/JSON')
+def itemsJSON():
+    s = DBSession()
+    items = s.query(Item).all()
+    return jsonify(categorias=[i.serialize for i in items])
+
+
+@app.route('/categorias/JSON')
+def categoriaJSON():
+    s = DBSession()
+    categorias = s.query(Categoria).all()
+    return jsonify(categorias=[c.serialize for c in categorias])
 
 
 if __name__ == '__main__':
