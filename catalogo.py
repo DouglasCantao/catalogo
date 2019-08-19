@@ -235,10 +235,11 @@ def mostrar_categoria():
     s = DBSession()
     if 'email' in session:
         email = session['email']
-        nickname = session['user']
         if email is not None:
             user = s.query(Usuario).filter_by(email=email).one()
-        elif nickname is not None:
+    elif 'user' in session:
+        nickname = session['user']
+        if nickname is not None:
             user = s.query(Usuario).filter_by(nickname=nickname).one()
     else:
         return redirect(url_for('show_login'))
@@ -257,10 +258,11 @@ def criar_categoria():
     s = DBSession()
     if 'email' in session:
         email = session['email']
-        nickname = session['user']
         if email is not None:
             user = s.query(Usuario).filter_by(email=email).one()
-        elif nickname is not None:
+    elif 'user' in session:
+        nickname = session['user']
+        if nickname is not None:
             user = s.query(Usuario).filter_by(nickname=nickname).one()
     else:
         return redirect(url_for('show_login'))
@@ -286,10 +288,11 @@ def items():
     s = DBSession()
     if 'email' in session:
         email = session['email']
-        nickname = session['user']
         if email is not None:
             user = s.query(Usuario).filter_by(email=email).one()
-        elif nickname is not None:
+    elif 'user' in session:
+        nickname = session['user']
+        if nickname is not None:
             user = s.query(Usuario).filter_by(nickname=nickname).one()
     else:
         return redirect(url_for('show_login'))
@@ -315,10 +318,11 @@ def adicionar_item():
     s = DBSession()
     if 'email' in session:
         email = session['email']
-        nickname = session['user']
         if email is not None:
             user = s.query(Usuario).filter_by(email=email).one()
-        elif nickname is not None:
+    elif 'user' in session:
+        nickname = session['user']
+        if nickname is not None:
             user = s.query(Usuario).filter_by(nickname=nickname).one()
     else:
         return redirect(url_for('show_login'))
@@ -347,18 +351,18 @@ def remove_item(id_item):
         item = s.query(Item).filter_by(id=id_item).one()
         s.delete(item)
         s.commit()
-        return redirect(url_for('adicionar_item'))
+        return 'OK'
 
 
 @app.route('/editaritem/<int:id_item>', methods=['POST'])
 def editar_item(id_item):
     s = DBSession()
 
-    json = request.get_json()
+    r_get = request.get_json()
 
-    nome_item = json["nome_item"]
-    descricao = json["descricao"]
-    categoria_id = json["categoria_id"]
+    nome_item = r_get["nome_item"]
+    descricao = r_get["descricao"]
+    categoria_id = r_get["categoria_id"]
 
     item = s.query(Item).filter_by(id=id_item).one()
     item.nome = nome_item
@@ -367,7 +371,7 @@ def editar_item(id_item):
     s.add(item)
     s.commit()
 
-    return 'OK', 200
+    return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
 
 @app.route('/removecategoria/<int:id_categoria>', methods=['DELETE'])
@@ -378,22 +382,23 @@ def remove_categoria(id_categoria):
         categoria = s.query(Categoria).filter_by(id=id_categoria).one()
         s.delete(categoria)
         s.commit()
-    return 'OK', 200
+    return 'OK'
 
 
 @app.route('/editarcategoria/<int:id_categoria>', methods=['POST'])
 def editar_categoria(id_categoria):
     s = DBSession()
-    json = request.get_json()
-    nome = json["cat_nome"]
-    descricao = json["cat_descricao"]
+    r_get = request.get_json()
+    nome = r_get["cat_nome"]
+    descricao = r_get["cat_descricao"]
 
     categoria = s.query(Categoria).filter_by(id=id_categoria).one()
     categoria.nome = nome
     categoria.descricao = descricao
     s.add(categoria)
     s.commit()
-    return redirect(url_for('mostrar_categoria'))
+    
+    return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
 
 @app.route('/usuarios/JSON')

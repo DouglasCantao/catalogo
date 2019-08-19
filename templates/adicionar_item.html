@@ -65,10 +65,10 @@
               //contentType: 'charset=utf-8',
               //data: id,
               success: function(result){
-                  if(result){
-                      alert("Item removido com sucesso!");
-                      window.location.reload(true);
-                  }
+                if(result){
+                $("#item-" + id).remove();    
+                alert("Item removido com sucesso!");
+                }
               }
         })
     }
@@ -77,7 +77,6 @@
   function show_editar_item_modal(id) {
 
     let itemChildren = $("#item-" + id).children();
-    console.log(itemChildren[0]);
 
     /* Atribui os valores do item aos campos de edição. */
     $("#editItemName").val(itemChildren[0].textContent);
@@ -90,7 +89,7 @@
   }
 
   function editar_item(id) {
-    data = {
+    inputData = {
         nome_item: $("#editItemName").val(),
         descricao: $("#editItemDescricao").val(),
         categoria_id: $("#editItemCategoria").val()
@@ -99,8 +98,16 @@
     $.ajax({
         type: 'POST',
         url: '/editaritem/' + $("#editItemId").val(),
-        data: JSON.stringify(data),
-        success: function(data) { alert('data: ' + data); },
+        data: JSON.stringify(inputData),
+        success: function(data) {
+          let itemChildren = $("#item-" + id).children();
+          
+          $(itemChildren[0]).html(inputData.nome_item)
+          $(itemChildren[1]).html(inputData.descricao)
+          $(itemChildren[2]).html($("#editItemCategoria").val(itemChildren[3].textContent))
+
+          $(".modal").hide();        
+        },
         contentType: "application/json",
         dataType: 'json'
     });
@@ -117,7 +124,7 @@
         <div class="modal-content">
           <p>Editar item</p>
 
-            <form id="editItemForm" method="POST">
+            <form id="editItemForm">
               <div class="three columns">
                 <label for="editItemName">Nome do item</label>
                 <input class="u-full-width" type="text" name="editItemName" id="editItemName" required>
@@ -127,7 +134,7 @@
                 <input class="u-full-width" type="text" name="editItemDescricao" id="editItemDescricao">
               </div>
               <div class="three columns">
-                <label for="editItemCategoria">Selecione a categoria</label>
+                <label for="editItemCategoria">Categoria</label>
                 <select class="u-full-width" id="editItemCategoria" name="editItemCategoria" required>
                     {% for cat in categorias %}
                         <option value="{{ cat.id }}">{{ cat.nome }}</option>

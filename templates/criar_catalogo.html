@@ -64,9 +64,7 @@
     }
 
     function show_editar_cat_modal(id) {
-
         let catChildren = $("#categoria-" + id).children();
-        console.log(catChildren[0]);
 
         /* Atribui os valores do item aos campos de edição. */
         $("#editCatName").val(catChildren[0].textContent);
@@ -78,7 +76,7 @@
     }
 
     function editar_cat() {
-        data = {
+        inputData = {
             cat_nome: $("#editCatName").val(),
             cat_descricao: $("#editCatDescricao").val()
         }
@@ -86,9 +84,18 @@
         $.ajax({
             type: 'POST',
             url: '/editarcategoria/' + $("#editCatId").val(),
-            data: JSON.stringify(data),
-            success: function(data) { 
-                $("#categoria-" + id).fadeOut(0.5);
+            data: JSON.stringify(inputData),
+            success: function(data) {
+              console.log(data)
+
+              let catChildren = $("#categoria-" + $('#editCatId').val()).children();
+              //debugger;
+
+              $(catChildren[0]).html(inputData.cat_nome);
+              $(catChildren[1]).html(inputData.cat_descricao);
+             
+              $(".modal").hide();
+                
             },
             contentType: "application/json",
             dataType: 'json'
